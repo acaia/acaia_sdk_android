@@ -15,6 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!--declare communication service-->
         <service
             android:name="co.acaia.communications.scaleService.ScaleCommunicationService"
             android:enabled="true" />
