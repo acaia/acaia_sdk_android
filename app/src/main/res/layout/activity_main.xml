@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/tv_weigh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0.0 g"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/guideLine1" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideLine1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.1" />
+
+    <TextView
+        android:id="@+id/tv_device_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Device Name"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/tv_battery"
+        app:layout_constraintTop_toBottomOf="@id/guideLine1" />
+
+    <TextView
+        android:id="@+id/tv_battery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Battery:"
+        android:textSize="16sp"
+        app:layout_constraintLeft_toRightOf="@+id/tv_device_name"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/tv_device_name"
+        app:layout_constraintTop_toBottomOf="@id/guideLine1" />
+
+    <TextView
+        android:id="@+id/tv_device_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Device Info"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_device_name" />
+
+    <TextView
+        android:id="@+id/tv_capacity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Capacity:"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_device_info" />
+
+    <TextView
+        android:id="@+id/tv_key_disable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Key disable:"
+        android:visibility="gone"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_capacity" />
+
+    <RadioGroup
+        android:id="@+id/r_group_auto_off_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/switch_beep_sound"
+        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auto off time"/>
+
+        <RadioButton
+            android:id="@+id/rbtn_0_min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 minute" />
+
+        <RadioButton
+            android:id="@+id/rbtn_5_min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="5 minutes" />
+
+        <RadioButton
+            android:id="@+id/rbtn_10_min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="10 minutes" />
+
+        <RadioButton
+            android:id="@+id/rbtn_20_min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="20 minutes" />
+
+        <RadioButton
+            android:id="@+id/rbtn_30_min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="30 minutes" />
+
+        <RadioButton
+            android:id="@+id/rbtn_60_min"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="60 minutes" />
+    </RadioGroup>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_beep_sound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Beep Sound"
+        android:textOff="off"
+        android:textOn="on"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@+id/r_group_auto_off_time"
+        app:layout_constraintRight_toLeftOf="@+id/r_group_unit"
+        app:layout_constraintBottom_toTopOf="@+id/button" />
+
+    <RadioGroup
+        android:id="@+id/r_group_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintLeft_toRightOf="@+id/switch_beep_sound"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unit"/>
+
+        <RadioButton
+            android:id="@+id/rbtn_g"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Gram" />
+
+        <RadioButton
+            android:id="@+id/rbtn_oz"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Ounce" />
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Connect"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/guideLine2"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideLine2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.9" />
+</androidx.constraintlayout.widget.ConstraintLayout>

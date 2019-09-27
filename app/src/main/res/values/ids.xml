@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="guideLine2" type="id"></item>
+    <item name="switch_beep_sound" type="id"></item>
+    <item name="button" type="id"></item>
+    <item name="r_group_unit" type="id"></item>
+    <item name="r_group_auto_off_time" type="id"></item>
+    <item name="tv_capacity" type="id"></item>
+    <item name="tv_device_info" type="id"></item>
+    <item name="tv_device_name" type="id"></item>
+    <item name="guideLine1" type="id"></item>
+    <item name="tv_battery" type="id"></item>
+    <item name="rbtn_g" type="id"></item>
+    <item name="rbtn_oz" type="id"></item>
+    <item name="rbtn_0_min" type="id"></item>
+    <item name="rbtn_5_min" type="id"></item>
+    <item name="rbtn_10_min" type="id"></item>
+    <item name="rbtn_20_min" type="id"></item>
+    <item name="rbtn_30_min" type="id"></item>
+    <item name="rbtn_60_min" type="id"></item>
+    <item name="tv_weigh" type="id"></item>
+    <item name="tv_key_disable" type="id"></item>
+</resources>
