@@ -31,4 +31,5 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.github.parse-community.Parse-SDK-Android:parse:1.18.6'
     implementation files('libs/acaiaSDKAndroid-release.aar')
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
 }

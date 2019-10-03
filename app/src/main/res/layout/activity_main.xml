@@ -52,6 +52,7 @@
         android:layout_height="wrap_content"
         android:text="Device Info"
         android:textSize="24sp"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_device_name" />
@@ -77,20 +78,31 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_capacity" />
 
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rc_mode_list"
+        tools:listitem="@layout/item_mode"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_key_disable"
+        app:layout_constraintBottom_toTopOf="@+id/r_group_auto_off_time" />
+
     <RadioGroup
         android:id="@+id/r_group_auto_off_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/switch_beep_sound"
-        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound">
+        app:layout_constraintRight_toLeftOf="@+id/switch_beep_sound">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Auto off time"/>
+            android:text="Auto off time" />
 
         <RadioButton
             android:id="@+id/rbtn_0_min"
@@ -143,9 +155,9 @@
         android:textOff="off"
         android:textOn="on"
         android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintLeft_toRightOf="@+id/r_group_auto_off_time"
-        app:layout_constraintRight_toLeftOf="@+id/r_group_unit"
-        app:layout_constraintBottom_toTopOf="@+id/button" />
+        app:layout_constraintRight_toLeftOf="@+id/r_group_unit" />
 
     <RadioGroup
         android:id="@+id/r_group_unit"
@@ -153,14 +165,14 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound"
         app:layout_constraintLeft_toRightOf="@+id/switch_beep_sound"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound">
+        app:layout_constraintRight_toRightOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Unit"/>
+            android:text="Unit" />
 
         <RadioButton
             android:id="@+id/rbtn_g"

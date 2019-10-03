@@ -2,6 +2,8 @@ package co.acaia.android.acaiasdksampleapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -21,6 +23,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import co.acaia.ble.events.ScaleConnectStateEvent;
@@ -36,17 +40,20 @@ public class MainActivity extends AppCompatActivity {
         MODE_MESSAGE
     }
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
-    private UPLOAD_MODE upload_mode;
+    private UPLOAD_MODE uploadMode;
     private ScaleCommunicationService mCommunicationService;
-    private BluetoothAdapter blueadapter;
+    private BluetoothAdapter blueAdapter;
     private boolean isConnected = false;
-    private Button btn_connect;
-    private TextView tv_weigh, tv_device_name, tv_device_info, tv_battery, tv_capacity, tv_key_disable;
-    private SwitchCompat switch_beep_sound;
-    private RadioGroup r_group_unit, r_group_auto_off_time;
+    private Button btnConnect;
+    private TextView tvWeigh, tvDeviceName, tvDeviceInfo, tvBattery, tvCapacity, tvKeyDisable;
+    private ModeAdapter modeAdapter;
+    private List<ModeAdapter.Mode> modeList = new ArrayList<>();
+    private RecyclerView rcMode;
+    private SwitchCompat switchBeepSound;
+    private RadioGroup rGroupUnit, rGroupAutoOffTime;
     private RadioButton
-            rbtn_g, rbtn_oz,
-            rbtn_0_min, rbtn_5_min, rbtn_10_min, rbtn_20_min, rbtn_30_min, rbtn_60_min;
+            rbtnG, rbtnOz,
+            rbtn0Min, rbtn5Min, rbtn10Min, rbtn20Min, rbtn30Min, rbtn60Min;
     private LoadingDialog loadingDialog;
     private final int sec = 10;
     private CountDownTimer stopScanTimer = new CountDownTimer(1000*sec, 1000) {
@@ -60,8 +67,8 @@ public class MainActivity extends AppCompatActivity {
             if(loadingDialog!=null && loadingDialog.isShowing()){
                 loadingDialog.dismiss();
             }
-            btn_connect.setClickable(true);
-            btn_connect.setText("Connect");
+            btnConnect.setClickable(true);
+            btnConnect.setText("Connect");
         }
     };
     private CompoundButton.OnCheckedChangeListener onUnitCheckChangeListener = new CompoundButton.OnCheckedChangeListener() {
@@ -116,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         EventBus.getDefault().register(this);
         mCommunicationService = ((AcaiaSDKSampleApp)getApplication()).getScaleCommunicationService();
         isPermissionGranted();
-        blueadapter = BluetoothAdapter.getDefaultAdapter();
+        blueAdapter = BluetoothAdapter.getDefaultAdapter();
         iniView();
     }
 
@@ -129,27 +136,28 @@ public class MainActivity extends AppCompatActivity {
 
     private void iniView(){
         loadingDialog = new LoadingDialog(this);
-        btn_connect = findViewById(R.id.button);
-        tv_weigh = findViewById(R.id.tv_weigh);
-        tv_device_name = findViewById(R.id.tv_device_name);
-        tv_device_info = findViewById(R.id.tv_device_info);
-        tv_battery = findViewById(R.id.tv_battery);
-        tv_capacity = findViewById(R.id.tv_capacity);
-        tv_key_disable = findViewById(R.id.tv_key_disable);
-        switch_beep_sound = findViewById(R.id.switch_beep_sound);
-        r_group_unit = findViewById(R.id.r_group_unit);
-        rbtn_g = findViewById(R.id.rbtn_g);
-        rbtn_oz = findViewById(R.id.rbtn_oz);
-        r_group_auto_off_time = findViewById(R.id.r_group_auto_off_time);
-        rbtn_0_min = findViewById(R.id.rbtn_0_min);
-        rbtn_5_min = findViewById(R.id.rbtn_5_min);
-        rbtn_10_min = findViewById(R.id.rbtn_10_min);
-        rbtn_20_min = findViewById(R.id.rbtn_20_min);
-        rbtn_30_min = findViewById(R.id.rbtn_30_min);
-        rbtn_60_min = findViewById(R.id.rbtn_60_min);
+        btnConnect = findViewById(R.id.button);
+        tvWeigh = findViewById(R.id.tv_weigh);
+        tvDeviceName = findViewById(R.id.tv_device_name);
+        tvDeviceInfo = findViewById(R.id.tv_device_info);
+        tvBattery = findViewById(R.id.tv_battery);
+        tvCapacity = findViewById(R.id.tv_capacity);
+        tvKeyDisable = findViewById(R.id.tv_key_disable);
+        rcMode = findViewById(R.id.rc_mode_list);
+        switchBeepSound = findViewById(R.id.switch_beep_sound);
+        rGroupUnit = findViewById(R.id.r_group_unit);
+        rbtnG = findViewById(R.id.rbtn_g);
+        rbtnOz = findViewById(R.id.rbtn_oz);
+        rGroupAutoOffTime = findViewById(R.id.r_group_auto_off_time);
+        rbtn0Min = findViewById(R.id.rbtn_0_min);
+        rbtn5Min = findViewById(R.id.rbtn_5_min);
+        rbtn10Min = findViewById(R.id.rbtn_10_min);
+        rbtn20Min = findViewById(R.id.rbtn_20_min);
+        rbtn30Min = findViewById(R.id.rbtn_30_min);
+        rbtn60Min = findViewById(R.id.rbtn_60_min);
 
         //set listeners
-        btn_connect.setOnClickListener(new View.OnClickListener() {
+        btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (isConnected){
@@ -159,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        switch_beep_sound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switchBeepSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if(b){
@@ -170,28 +178,32 @@ public class MainActivity extends AppCompatActivity {
                 mCommunicationService.requestPearlsStatus();
             }
         });
-        rbtn_g.setOnCheckedChangeListener(onUnitCheckChangeListener);
-        rbtn_oz.setOnCheckedChangeListener(onUnitCheckChangeListener);
-        rbtn_0_min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
-        rbtn_5_min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
-        rbtn_10_min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
-        rbtn_20_min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
-        rbtn_30_min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
-        rbtn_60_min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
+        rbtnG.setOnCheckedChangeListener(onUnitCheckChangeListener);
+        rbtnOz.setOnCheckedChangeListener(onUnitCheckChangeListener);
+        rbtn0Min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
+        rbtn5Min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
+        rbtn10Min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
+        rbtn20Min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
+        rbtn30Min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
+        rbtn60Min.setOnCheckedChangeListener(onAutoOffTimeCheckChangeListener);
+
+        modeAdapter = new ModeAdapter(modeList);
+        rcMode.setLayoutManager(new LinearLayoutManager(this));
+        rcMode.setAdapter(modeAdapter);
     }
 
     private void disconnectDevice(){
         mCommunicationService.manualDisconnect();
-        tv_weigh.setText("0.0 g");
-        tv_device_name.setText("Device Name");
-        tv_device_info.setText("Device Info");
-        tv_battery.setText("Battery:");
-        tv_capacity.setText("Capacity:");
-        tv_key_disable.setText("Key Disable:");
+        tvWeigh.setText("0.0 g");
+        tvDeviceName.setText("Device Name");
+        tvDeviceInfo.setText("Device Info");
+        tvBattery.setText("Battery:");
+        tvCapacity.setText("Capacity:");
+        tvKeyDisable.setText("Key Disable:");
     }
 
     private void scanAndConnectDevice(){
-        if (blueadapter != null && !blueadapter.isEnabled()) {
+        if (blueAdapter != null && !blueAdapter.isEnabled()) {
             DialogHelper.showSettingBluetoothDialog(
                     this,
                     "Request permission",
@@ -202,22 +214,24 @@ public class MainActivity extends AppCompatActivity {
             }
             loadingDialog.show();
             stopScanTimer.start();
-            btn_connect.setClickable(false);
-            btn_connect.setText("Connecting...");
+            btnConnect.setClickable(false);
+            btnConnect.setText("Connecting...");
             mCommunicationService.distanceConnect();
         }
     }
 
     private void showSettingItems(){
-        switch_beep_sound.setVisibility(View.VISIBLE);
-        r_group_unit.setVisibility(View.VISIBLE);
-        r_group_auto_off_time.setVisibility(View.VISIBLE);
+        switchBeepSound.setVisibility(View.VISIBLE);
+        rGroupUnit.setVisibility(View.VISIBLE);
+        rGroupAutoOffTime.setVisibility(View.VISIBLE);
+        rcMode.setVisibility(View.VISIBLE);
     }
 
     private void hideSettingItems(){
-        switch_beep_sound.setVisibility(View.GONE);
-        r_group_unit.setVisibility(View.GONE);
-        r_group_auto_off_time.setVisibility(View.GONE);
+        switchBeepSound.setVisibility(View.GONE);
+        rGroupUnit.setVisibility(View.GONE);
+        rGroupAutoOffTime.setVisibility(View.GONE);
+        rcMode.setVisibility(View.GONE);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -226,15 +240,15 @@ public class MainActivity extends AppCompatActivity {
         isConnected = event.isConnected;
         if(isConnected){
             if (event.device!=null)
-                tv_device_name.setText(event.device.getName());
-            btn_connect.setText("Disconnect");
+                tvDeviceName.setText(event.device.getName());
+            btnConnect.setText("Disconnect");
             showSettingItems();
         }else {
-            tv_device_name.setText("Device Name");
-            btn_connect.setText("Connect");
+            tvDeviceName.setText("Device Name");
+            btnConnect.setText("Connect");
             hideSettingItems();
         }
-        btn_connect.setClickable(true);
+        btnConnect.setClickable(true);
         if(loadingDialog!=null && loadingDialog.isShowing()){
             loadingDialog.dismiss();
         }
@@ -242,79 +256,94 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPearlSStatusEvent(PearlSStatusEvent event) {
-        tv_device_info.setText("");
+        tvDeviceInfo.setText("");
         //Beep sound
         switch (event.beep){
             case 0:
-                tv_device_info.setText(tv_device_info.getText().toString() + "Sound: OFF");
-                switch_beep_sound.setChecked(false);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "Sound: OFF");
+                switchBeepSound.setChecked(false);
                 break;
             case 1:
                 //beep sound on
-                tv_device_info.setText(tv_device_info.getText().toString() + "Sound: ON");
-                switch_beep_sound.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "Sound: ON");
+                switchBeepSound.setChecked(true);
                 break;
         }
         //Auto off time
         switch (event.autoOff){
             case 0:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Auto off: Disabled");
-                rbtn_0_min.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: Disabled");
+                rbtn0Min.setChecked(true);
                 break;
             case 1:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Auto off: 5 minutes");
-                rbtn_5_min.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 5 minutes");
+                rbtn5Min.setChecked(true);
                 break;
             case 2:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Auto off: 10 minutes");
-                rbtn_10_min.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 10 minutes");
+                rbtn10Min.setChecked(true);
                 break;
             case 3:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Auto off: 20 minutes");
-                rbtn_20_min.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 20 minutes");
+                rbtn20Min.setChecked(true);
                 break;
             case 4:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Auto off: 30 minutes");
-                rbtn_30_min.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 30 minutes");
+                rbtn30Min.setChecked(true);
                 break;
             case 5:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Auto off: 60 minutes");
-                rbtn_60_min.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 60 minutes");
+                rbtn60Min.setChecked(true);
                 break;
         }
         //Weigh unit
         switch (event.unit){
             case 2:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Weigh Unit: Gram");
-                rbtn_g.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Weigh Unit: Gram");
+                rbtnG.setChecked(true);
                 break;
             case 5:
-                tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Weigh Unit: Ounce");
-                rbtn_oz.setChecked(true);
+                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Weigh Unit: Ounce");
+                rbtnOz.setChecked(true);
                 break;
         }
         //Mode
-        tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Brewguide Mode");
+        tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Brewguide Mode");
         if(event.weighingMode==1){
-            tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Weighing Mode");
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Weighing Mode");
         }
         if(event.dualDispMode==1){
-            tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Dual Display Mode");
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Dual Display Mode");
         }
         if(event.pourOverAutoStartMode==1){
-            tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Pour Over Auto Start Mode");
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Pour Over Auto Start Mode");
         }
         if(event.protaMode==1){
-            tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Protafilter Mode");
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Protafilter Mode");
         }
         if(event.espressoMode==1){
-            tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Espresso Mode");
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Espresso Mode");
         }
         if(event.pourOverMode==1){
-            tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Flowrate Mode");
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Mode");
         }
         if(event.flowRatemode==1){
-            tv_device_info.setText(tv_device_info.getText().toString() + "\n" + "Mode: Flowrate Practice Mode");
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Practice Mode");
+        }
+        showMode(event);
+    }
+
+    private void showMode(PearlSStatusEvent event){
+        if (modeList.size()<=0){
+            modeList.add(new ModeAdapter.Mode(true, "Brewguide Mode"));
+            modeList.add(new ModeAdapter.Mode(event.weighingMode==1, "Weighing Mode"));
+            modeList.add(new ModeAdapter.Mode(event.dualDispMode==1, "Dual Display Mode"));
+            modeList.add(new ModeAdapter.Mode(event.pourOverAutoStartMode==1, "Pour Over Auto Start Mode"));
+            modeList.add(new ModeAdapter.Mode(event.protaMode==1, "Protafilter Mode"));
+            modeList.add(new ModeAdapter.Mode(event.espressoMode==1, "Espresso Mode"));
+            modeList.add(new ModeAdapter.Mode(event.pourOverMode==1, "Flowrate Mode"));
+            modeList.add(new ModeAdapter.Mode(event.flowRatemode==1, "Flowrate Practice Mode"));
+            modeAdapter.notifyItemRangeInserted(0, modeList.size());
         }
     }
 
@@ -327,11 +356,11 @@ public class MainActivity extends AppCompatActivity {
         switch (event.weight.getUnitText()) {
             case "oz":
                 weight_str = String.format(Locale.US, "%.3f", weight_value);
-                tv_weigh.setText(weight_str + " " + event.weight.getUnitText());
+                tvWeigh.setText(weight_str + " " + event.weight.getUnitText());
                 break;
             case "g":
                 weight_str = String.format(Locale.US, "%.1f", weight_value);
-                tv_weigh.setText(weight_str + " " + event.weight.getUnitText());
+                tvWeigh.setText(weight_str + " " + event.weight.getUnitText());
                 break;
         }
         unit_string = event.weight.getUnitText();
@@ -340,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onScaleSettingUpdateEvent(ScaleSettingUpdateEvent event){
         if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_BATTERY.ordinal()){
-            tv_battery.setText("battery: " + event.get_val() + "%");
+            tvBattery.setText("battery: " + event.get_val() + "%");
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_CAPACITY.ordinal()){
 //            double d_capasity = event.get_val();
 //            String capacity = "";
@@ -353,9 +382,9 @@ public class MainActivity extends AppCompatActivity {
 //                    capacity = String.format(Locale.US, "%.1f", d_capasity);
 //                    break;
 //            }
-            tv_capacity.setText("Capacity: " + event.get_val() + " g");
+            tvCapacity.setText("Capacity: " + event.get_val() + " g");
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_KEY_DISABLED_ELAPSED_TIME.ordinal()){
-            tv_key_disable.setText("Key disable: " + event.get_val());
+            tvKeyDisable.setText("Key disable: " + event.get_val());
         }
     }
 
