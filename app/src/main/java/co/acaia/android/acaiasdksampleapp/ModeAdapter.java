@@ -13,7 +13,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.List;
 
 import co.acaia.brewguide.events.PearlSModeEvent;
-import co.acaia.communications.protocol.ver20.ScaleProtocol;
+import co.acaia.communications.protocol.ver20.pearls.ScaleProtocol;
 
 /**
  * Created by Dennis on 2019-10-03

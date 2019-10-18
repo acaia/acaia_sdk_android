@@ -23,6 +23,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -31,5 +32,4 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.github.parse-community.Parse-SDK-Android:parse:1.18.6'
     implementation files('libs/acaiaSDKAndroid-release.aar')
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
 }

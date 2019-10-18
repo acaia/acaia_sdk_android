@@ -80,14 +80,15 @@
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rc_mode_list"
         tools:listitem="@layout/item_mode"
+        android:id="@+id/rc_mode_list"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/r_group_auto_off_time"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_key_disable"
-        app:layout_constraintBottom_toTopOf="@+id/r_group_auto_off_time" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_key_disable" />
 
     <RadioGroup
         android:id="@+id/r_group_auto_off_time"
@@ -158,6 +159,36 @@
         app:layout_constraintBottom_toTopOf="@+id/button"
         app:layout_constraintLeft_toRightOf="@+id/r_group_auto_off_time"
         app:layout_constraintRight_toLeftOf="@+id/r_group_unit" />
+
+    <RadioGroup
+        android:id="@+id/r_group_capacity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintLeft_toLeftOf="@+id/r_group_unit"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/r_group_unit">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capacity"/>
+
+        <RadioButton
+            android:id="@+id/rbtn_capacity_1000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="1000 g" />
+
+        <RadioButton
+            android:id="@+id/rbtn_capacity_2000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="2000 g" />
+    </RadioGroup>
 
     <RadioGroup
         android:id="@+id/r_group_unit"
