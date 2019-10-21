@@ -83,7 +83,6 @@ public class AcaiaSDKSampleApp extends Application {
                             int unit = intent.getExtras().getInt(ScaleCommunicationService.EXTRA_UNIT);
 
                             // Hanjord todo: migrate from Brewmaster
-                            EventBus.getDefault().post(new ScaleSettingUpdateEvent(ScaleSettingUpdateEventType.event_type.EVENT_UNIT.ordinal(), unit));
                             EventBus.getDefault().post(new WeightEvent(result, unit));
                             break;
 
@@ -110,6 +109,11 @@ public class AcaiaSDKSampleApp extends Application {
                         case ScaleCommunicationService.DATA_TYPE_CAPACITY:
                             val = intent.getExtras().getFloat(ScaleCommunicationService.EXTRA_DATA);
                             EventBus.getDefault().post(new ScaleSettingUpdateEvent(ScaleSettingUpdateEventType.event_type.EVENT_CAPACITY.ordinal(), val));
+                            break;
+
+                        case ScaleCommunicationService.DATA_TYPE_UNIT:
+                            val = intent.getExtras().getFloat(ScaleCommunicationService.EXTRA_DATA);
+                            EventBus.getDefault().post(new ScaleSettingUpdateEvent(ScaleSettingUpdateEventType.event_type.EVENT_UNIT.ordinal(), val));
                             break;
                     }
                 } catch (Exception ex) {

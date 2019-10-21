@@ -251,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
         rcMode.setVisibility(View.VISIBLE);
         if(currentDevice.getName().contains("PEARLS")){
             rcMode.setVisibility(View.VISIBLE);
+            rbtnCapacity2000.setText("3000 g");
         }
     }
 
@@ -297,6 +298,8 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPearlSStatusEvent(PearlSStatusEvent event) {
         tvDeviceInfo.setText("");
+        //Battery
+        tvBattery.setText("Battery: " + event.battery + "%");
         //Beep sound
         switch (event.beep){
             case 0:
@@ -347,32 +350,43 @@ public class MainActivity extends AppCompatActivity {
                 rbtnOz.setChecked(true);
                 break;
         }
-        //Mode
-        if(currentDevice!=null && currentDevice.getName().contains("PEARLS")){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Brewguide Mode");
-            if(event.weighingMode==1){
-                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Weighing Mode");
-            }
-            if(event.dualDispMode==1){
-                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Dual Display Mode");
-            }
-            if(event.pourOverAutoStartMode==1){
-                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Pour Over Auto Start Mode");
-            }
-            if(event.protaMode==1){
-                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Protafilter Mode");
-            }
-            if(event.espressoMode==1){
-                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Espresso Mode");
-            }
-            if(event.pourOverMode==1){
-                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Mode");
-            }
-            if(event.flowRatemode==1){
-                tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Practice Mode");
-            }
-            showMode(event);
+        //Capacity
+        String capacity = "";
+        switch (event.capacity){
+            case 0:
+                capacity = "1000";
+                rbtnCapacity1000.setChecked(true);
+                break;
+            case 1:
+                capacity = "3000";
+                rbtnCapacity2000.setChecked(true);
+                break;
         }
+        tvCapacity.setText("Capacity: " + capacity + " g");
+        //Mode
+        tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Brewguide Mode");
+        if(event.weighingMode==1){
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Weighing Mode");
+        }
+        if(event.dualDispMode==1){
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Dual Display Mode");
+        }
+        if(event.pourOverAutoStartMode==1){
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Pour Over Auto Start Mode");
+        }
+        if(event.protaMode==1){
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Protafilter Mode");
+        }
+        if(event.espressoMode==1){
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Espresso Mode");
+        }
+        if(event.pourOverMode==1){
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Mode");
+        }
+        if(event.flowRatemode==1){
+            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Practice Mode");
+        }
+        showMode(event);
     }
 
     private void showMode(PearlSStatusEvent event){
@@ -408,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onScaleSettingUpdateEvent(ScaleSettingUpdateEvent event){
         if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_BATTERY.ordinal()){
-            tvBattery.setText("battery: " + event.get_val() + "%");
+            tvBattery.setText("Battery: " + event.get_val() + "%");
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_BEEP.ordinal()){
             if(event.get_val()==0.0f){
                 switchBeepSound.setChecked(false);
@@ -429,6 +443,12 @@ public class MainActivity extends AppCompatActivity {
                 rbtn30Min.setChecked(true);
             }else if(event.get_val()==5.0f){
                 rbtn60Min.setChecked(true);
+            }
+        }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_UNIT.ordinal()){
+            if(event.get_val()==0){
+                rbtnG.setChecked(true);
+            }else {
+                rbtnOz.setChecked(true);
             }
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_CAPACITY.ordinal()){
             String capacity = "";
