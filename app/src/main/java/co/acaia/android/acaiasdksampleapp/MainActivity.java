@@ -252,6 +252,8 @@ public class MainActivity extends AppCompatActivity {
         if(currentDevice.getName().contains("PEARLS")){
             rcMode.setVisibility(View.VISIBLE);
             rbtnCapacity2000.setText("3000 g");
+        }else {
+            rbtnCapacity2000.setText("2000 g");
         }
     }
 
@@ -276,12 +278,6 @@ public class MainActivity extends AppCompatActivity {
                 currentDevice = event.device;
                 tvDeviceName.setText(event.device.getName());
             }
-//            if(event.device.getName().contains("PROCH")){
-//                EventBus.getDefault().post(new ScaleCommandEvent(ScaleCommandType.command_id.GET_SOUND_ONOFF.ordinal()));
-//                EventBus.getDefault().post(new ScaleCommandEvent(ScaleCommandType.command_id.GET_AUTO_OFF_TIME.ordinal()));
-//                EventBus.getDefault().post(new ScaleCommandEvent(ScaleCommandType.command_id.GET_BATT.ordinal()));
-//                EventBus.getDefault().post(new ScaleCommandEvent(ScaleCommandType.command_id.GET_CAPACITY.ordinal()));
-//            }
             btnConnect.setText("Disconnect");
             showSettingItems();
         }else {
