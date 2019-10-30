@@ -157,7 +157,7 @@
         android:textOff="off"
         android:textOn="on"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintBottom_toTopOf="@+id/btn_connect"
         app:layout_constraintLeft_toRightOf="@+id/r_group_auto_off_time"
         app:layout_constraintRight_toLeftOf="@+id/r_group_unit" />
 
@@ -222,13 +222,24 @@
     </RadioGroup>
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btn_connect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Connect"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/btn_upload"
         app:layout_constraintBottom_toTopOf="@+id/guideLine2"/>
+
+    <Button
+        android:id="@+id/btn_upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Upload"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@+id/btn_connect"
+        app:layout_constraintLeft_toRightOf="@+id/btn_connect"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_connect"/>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideLine2"

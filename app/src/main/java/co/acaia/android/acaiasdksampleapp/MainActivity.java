@@ -20,6 +20,11 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -27,10 +32,16 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import co.acaia.ble.events.ScaleConnectStateEvent;
+import co.acaia.brewguide.BrewguideUploader;
+import co.acaia.brewguide.events.BrewguideCommandEvent;
 import co.acaia.brewguide.events.PearlSStatusEvent;
+import co.acaia.brewguide.events.PearlSUploadProgressEvent;
 import co.acaia.communications.events.WeightEvent;
+import co.acaia.communications.protocol.ver20.pearls.ScaleProtocol;
 import co.acaia.communications.scaleService.ScaleCommunicationService;
 import co.acaia.communications.scaleevent.ScaleSettingUpdateEvent;
 import co.acaia.communications.scaleevent.ScaleSettingUpdateEventType;
@@ -42,11 +53,12 @@ public class MainActivity extends AppCompatActivity {
     }
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private UPLOAD_MODE uploadMode;
+    private Brew brew;
     private ScaleCommunicationService mCommunicationService;
     private BluetoothAdapter blueAdapter;
     private BluetoothDevice currentDevice;
     private boolean isConnected = false;
-    private Button btnConnect;
+    private Button btnConnect, btnUpload;
     private TextView tvWeigh, tvDeviceName, tvDeviceInfo, tvBattery, tvCapacity, tvKeyDisable;
     private ModeAdapter modeAdapter;
     private List<ModeAdapter.Mode> modeList = new ArrayList<>();
@@ -57,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
             rbtnCapacity1000, rbtnCapacity2000,
             rbtnG, rbtnOz,
             rbtn0Min, rbtn5Min, rbtn10Min, rbtn20Min, rbtn30Min, rbtn60Min;
+    private Timer uploadErrorTimer;
+    private long last_data_time = 0;
     private LoadingDialog loadingDialog;
     private final int sec = 10;
     private CountDownTimer stopScanTimer = new CountDownTimer(1000*sec, 1000) {
@@ -140,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         mCommunicationService = ((AcaiaSDKSampleApp)getApplication()).getScaleCommunicationService();
         isPermissionGranted();
         blueAdapter = BluetoothAdapter.getDefaultAdapter();
+        createBrew();
         iniView();
     }
 
@@ -150,9 +165,67 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    private void createBrew(){
+        ParseQuery query = ParseQuery.getQuery("Brewguide");
+        query.whereEqualTo(ParseBrew.OBJECT_ID, "tDB39DQnph");
+        query.findInBackground(new FindCallback() {
+            @Override
+            public void done(List objects, ParseException e) {
+
+            }
+
+            @Override
+            public void done(Object o, Throwable throwable) {
+                if (throwable==null){
+                    if(((ArrayList<ParseObject>)o).size()>0){
+                        brew = new Brew(((ArrayList<ParseObject>) o).get(0));
+                    }
+                }
+            }
+        });
+    }
+
+    private void uploadBrew(){
+        if(brew==null){
+            Toast.makeText(this, "Null Brew !!!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (brew.getStepItems().size() <= 0) {
+            Toast.makeText(this, "Please enter at least one Brewstep...", Toast.LENGTH_LONG).show();
+            return;
+        }
+        loadingDialog.show(LoadingDialog.LoadingMode.bar);
+        BrewguideUploader brewguideUploader = AcaiaSDKSampleApp.brewguideUploader;
+        brewguideUploader.upload_mode = BrewguideUploader.UPLOAD_MODE.upload_mode_brewguide;
+        co.acaia.brewguide.model.Brewguide brewguide = new co.acaia.brewguide.model.Brewguide(brew.createParse(this));
+        brewguideUploader.setBrewguideData(brewguide);
+        BrewguideCommandEvent event = new BrewguideCommandEvent((short) ScaleProtocol.ECMD.new_cmd_sync_brewguide_s.ordinal(), (short) 5);
+        EventBus.getDefault().post(event);
+        uploadErrorTimer = new Timer();
+        uploadErrorTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (System.currentTimeMillis() - last_data_time > 5000) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            disconnectDevice();
+                            if(loadingDialog!=null && loadingDialog.isShowing()){
+                                loadingDialog.dismiss();
+                            }
+                            loadingDialog.setProgress(0);
+                            Toast.makeText(MainActivity.this, "Upload failed !!!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }, 10000);
+    }
+
     private void iniView(){
         loadingDialog = new LoadingDialog(this);
-        btnConnect = findViewById(R.id.button);
+        btnConnect = findViewById(R.id.btn_connect);
+        btnUpload = findViewById(R.id.btn_upload);
         tvWeigh = findViewById(R.id.tv_weigh);
         tvDeviceName = findViewById(R.id.tv_device_name);
         tvDeviceInfo = findViewById(R.id.tv_device_info);
@@ -184,6 +257,12 @@ public class MainActivity extends AppCompatActivity {
                 }else {
                     scanAndConnectDevice();
                 }
+            }
+        });
+        btnUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                uploadBrew();
             }
         });
         switchBeepSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -250,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
         rGroupAutoOffTime.setVisibility(View.VISIBLE);
         rcMode.setVisibility(View.VISIBLE);
         if(currentDevice.getName().contains("PEARLS")){
+            btnUpload.setVisibility(View.VISIBLE);
             rcMode.setVisibility(View.VISIBLE);
             rbtnCapacity2000.setText("3000 g");
         }else {
@@ -264,9 +344,28 @@ public class MainActivity extends AppCompatActivity {
         rGroupUnit.setVisibility(View.GONE);
         rGroupAutoOffTime.setVisibility(View.GONE);
         rcMode.setVisibility(View.GONE);
+        if(btnUpload.getVisibility() == View.VISIBLE){
+            btnUpload.setVisibility(View.GONE);
+        }
         if(rcMode.getVisibility() == View.VISIBLE){
             rcMode.setVisibility(View.GONE);
         }
+    }
+
+    @Subscribe
+    public void onEvent(PearlSUploadProgressEvent event) {
+        if(event.progress==100){
+            if (uploadErrorTimer != null) {
+                uploadErrorTimer.cancel();
+            }
+            disconnectDevice();
+            if(loadingDialog!=null && loadingDialog.isShowing()){
+                loadingDialog.dismiss();
+            }
+            return;
+        }
+        last_data_time = System.currentTimeMillis();
+        loadingDialog.setProgress(event.progress);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

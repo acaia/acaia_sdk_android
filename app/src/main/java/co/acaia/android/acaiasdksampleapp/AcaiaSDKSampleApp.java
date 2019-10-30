@@ -11,6 +11,7 @@ import com.parse.Parse;
 import org.greenrobot.eventbus.EventBus;
 
 //import co.acaia.brewguide.BrewguideUploader;
+import co.acaia.brewguide.BrewguideUploader;
 import co.acaia.communications.events.WeightEvent;
 import co.acaia.communications.scaleService.AcaiaScaleService;
 import co.acaia.communications.scaleService.ScaleCommunicationService;
@@ -26,19 +27,19 @@ public class AcaiaSDKSampleApp extends Application {
     public static final String PARSE_CLIENT_KEY = "EMwXMUeE8b5hA1mcLgTrIukqwDw1BaKLQax5Wh3m";
     public static final String PARSE_SERVER = "https://parseapi.back4app.com/";
 
-//    private BrewguideUploader brewguideUploader;
+    public static BrewguideUploader brewguideUploader;
     public static AcaiaScaleService mAcaiaScaleService;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        brewguideUploader = new BrewguideUploader(BrewguideUploader.UPLOAD_MODE.upload_mode_brewguide);
         Parse.initialize(new Parse.Configuration.Builder(this)
                 .applicationId(PARSE_APP_ID)
                 .clientKey(PARSE_CLIENT_KEY)
                 .server(PARSE_SERVER)
                 .build()
         );
-//        brewguideUploader = new BrewguideUploader(BrewguideUploader.UPLOAD_MODE.upload_mode_brewguide);
         initAcaiaBt();
         registerUpdateReceiver();
 //        EventBus.getDefault().register(this);

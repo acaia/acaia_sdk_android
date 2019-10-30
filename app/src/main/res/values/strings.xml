@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">AcaiaSDKSampleApp</string>
+
+    <string name="low_voice">Low-pitched Sound</string>
+    <string name="high_voice">High-pitched Sound</string>
+    <string name="high_and_low_voice">High and low-pitched Sound</string>
 </resources>
