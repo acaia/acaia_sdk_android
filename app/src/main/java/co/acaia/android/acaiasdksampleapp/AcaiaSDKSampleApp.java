@@ -22,11 +22,6 @@ import co.acaia.communications.scaleevent.ScaleSettingUpdateEventType;
  * Created by Dennis on 2019-09-26
  */
 public class AcaiaSDKSampleApp extends Application {
-    //Test server
-    public static final String PARSE_APP_ID = "oLSJZ4Xk6qnXhNtMWPhvFmxviXTE5AzY5B7xRcNF";
-    public static final String PARSE_CLIENT_KEY = "EMwXMUeE8b5hA1mcLgTrIukqwDw1BaKLQax5Wh3m";
-    public static final String PARSE_SERVER = "https://parseapi.back4app.com/";
-
     public static BrewguideUploader brewguideUploader;
     public static AcaiaScaleService mAcaiaScaleService;
 
@@ -34,12 +29,6 @@ public class AcaiaSDKSampleApp extends Application {
     public void onCreate() {
         super.onCreate();
         brewguideUploader = new BrewguideUploader(BrewguideUploader.UPLOAD_MODE.upload_mode_brewguide);
-        Parse.initialize(new Parse.Configuration.Builder(this)
-                .applicationId(PARSE_APP_ID)
-                .clientKey(PARSE_CLIENT_KEY)
-                .server(PARSE_SERVER)
-                .build()
-        );
         initAcaiaBt();
         registerUpdateReceiver();
 //        EventBus.getDefault().register(this);

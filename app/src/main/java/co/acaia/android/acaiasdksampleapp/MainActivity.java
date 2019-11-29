@@ -166,23 +166,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createBrew(){
-        ParseQuery query = ParseQuery.getQuery("Brewguide");
-        query.whereEqualTo(ParseBrew.OBJECT_ID, "tDB39DQnph");
-        query.findInBackground(new FindCallback() {
-            @Override
-            public void done(List objects, ParseException e) {
-
-            }
-
-            @Override
-            public void done(Object o, Throwable throwable) {
-                if (throwable==null){
-                    if(((ArrayList<ParseObject>)o).size()>0){
-                        brew = new Brew(((ArrayList<ParseObject>) o).get(0));
-                    }
-                }
-            }
-        });
+        //Get recipe data ...
     }
 
     private void uploadBrew(){
