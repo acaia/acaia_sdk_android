@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -294,15 +296,22 @@ public class MainActivity extends AppCompatActivity {
                     this,
                     "Request permission",
                     "Please turn on Bluetooth");
+        }else if (!isGPSEnable()){
+            DialogHelper.showSettingGPSDialog(
+                    this,
+                    "Request permission",
+                    "Please turn on GPS");
         } else {
-            if(mCommunicationService==null){
-                mCommunicationService = ((AcaiaSDKSampleApp)getApplication()).getScaleCommunicationService();
+            if(isPermissionGranted()){
+                if(mCommunicationService==null){
+                    mCommunicationService = ((AcaiaSDKSampleApp)getApplication()).getScaleCommunicationService();
+                }
+                loadingDialog.show();
+                stopScanTimer.start();
+                btnConnect.setClickable(false);
+                btnConnect.setText("Connecting...");
+                mCommunicationService.autoConnect(1000*sec);
             }
-            loadingDialog.show();
-            stopScanTimer.start();
-            btnConnect.setClickable(false);
-            btnConnect.setText("Connecting...");
-            mCommunicationService.autoConnect(1000*sec);
         }
     }
 
@@ -578,5 +587,10 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, permission_denied_msg, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private boolean isGPSEnable(){
+        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 }
