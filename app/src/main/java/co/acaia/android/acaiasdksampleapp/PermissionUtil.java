@@ -11,17 +11,6 @@ import androidx.core.content.ContextCompat;
  * Created by Dennis on 2019-09-24
  */
 public class PermissionUtil {
-    public static boolean allPermissionsGranted(Context context, String[] permissions){
-        boolean allPermissionsGranted = true;
-        for(String p : permissions){
-            allPermissionsGranted = ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED;
-            if(!allPermissionsGranted){
-                break;
-            }
-        }
-        return allPermissionsGranted;
-    }
-
     public static boolean allPermissionsGranted(int[] grantResults){
         if(grantResults.length > 0){
             boolean allPermissionsGranted = true;

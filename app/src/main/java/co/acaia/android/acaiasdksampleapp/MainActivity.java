@@ -9,6 +9,7 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -21,11 +22,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.ParseQuery;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -42,6 +38,7 @@ import co.acaia.brewguide.BrewguideUploader;
 import co.acaia.brewguide.events.BrewguideCommandEvent;
 import co.acaia.brewguide.events.PearlSStatusEvent;
 import co.acaia.brewguide.events.PearlSUploadProgressEvent;
+import co.acaia.communications.events.ServiceConnectionEvent;
 import co.acaia.communications.events.WeightEvent;
 import co.acaia.communications.protocol.ver20.pearls.ScaleProtocol;
 import co.acaia.communications.scaleService.ScaleCommunicationService;
@@ -49,6 +46,7 @@ import co.acaia.communications.scaleevent.ScaleSettingUpdateEvent;
 import co.acaia.communications.scaleevent.ScaleSettingUpdateEventType;
 
 public class MainActivity extends AppCompatActivity {
+
     public enum UPLOAD_MODE {
         MODE_BREWGUIDE,
         MODE_MESSAGE
@@ -60,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter blueAdapter;
     private BluetoothDevice currentDevice;
     private boolean isConnected = false;
+    private boolean isServiceReady = false;
     private Button btnConnect, btnUpload;
     private TextView tvWeigh, tvDeviceName, tvDeviceInfo, tvBattery, tvCapacity, tvKeyDisable;
     private ModeAdapter modeAdapter;
@@ -85,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         public void onFinish() {
             if(loadingDialog!=null && loadingDialog.isShowing()){
                 loadingDialog.dismiss();
+                Toast.makeText(MainActivity.this, "No Scales be found", Toast.LENGTH_SHORT).show();
             }
             btnConnect.setClickable(true);
             btnConnect.setText("Connect");
@@ -153,8 +153,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
-        mCommunicationService = ((AcaiaSDKSampleApp)getApplication()).getScaleCommunicationService();
-        isPermissionGranted();
         blueAdapter = BluetoothAdapter.getDefaultAdapter();
         createBrew();
         iniView();
@@ -290,19 +288,37 @@ public class MainActivity extends AppCompatActivity {
         mCommunicationService.disconnect();
     }
 
-    private void scanAndConnectDevice(){
+    private boolean isBleEnable(){
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "Bluetooth is not supported !!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
         if (blueAdapter != null && !blueAdapter.isEnabled()) {
-            DialogHelper.showSettingBluetoothDialog(
+            DialogHelper.turnOnBluetoothDialog(
                     this,
-                    "Request permission",
-                    "Please turn on Bluetooth");
-        }else if (!isGPSEnable()){
+                    blueAdapter,
+                    "Bluetooth requirement",
+                    "Would you like to turn on bluetooth?");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isGPSEnable(){
+        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
             DialogHelper.showSettingGPSDialog(
                     this,
-                    "Request permission",
-                    "Please turn on GPS");
-        } else {
-            if(isPermissionGranted()){
+                    "GPS requirement",
+                    "Please turn on GPS.");
+            return false;
+        }
+        return true;
+    }
+
+    private void scanAndConnectDevice(){
+        if (isBleEnable() && isGPSEnable() && isPermissionGranted()){
+            if (isServiceReady && !isConnected){
                 if(mCommunicationService==null){
                     mCommunicationService = ((AcaiaSDKSampleApp)getApplication()).getScaleCommunicationService();
                 }
@@ -346,6 +362,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe
+    public void onEvent(ServiceConnectionEvent event) {
+        isServiceReady = event.isConnected();
+        if(event.isConnected()){
+            // Auto connect scale if the service is connected.
+            scanAndConnectDevice();
+        }
+    }
+
+    @Subscribe
     public void onEvent(PearlSUploadProgressEvent event) {
         if(event.progress==100){
             if (uploadErrorTimer != null) {
@@ -372,6 +397,7 @@ public class MainActivity extends AppCompatActivity {
             }
             btnConnect.setText("Disconnect");
             showSettingItems();
+            Toast.makeText(this, "Scale connected.", Toast.LENGTH_SHORT).show();
         }else {
             tvDeviceName.setText("Device Name");
             btnConnect.setText("Connect");
@@ -579,18 +605,16 @@ public class MainActivity extends AppCompatActivity {
                     DialogHelper.showGoSettingDialog(
                             this,
                             "Request permission",
-                            "Location permission");
+                            "Please allow the location permission then app can start connection. " +
+                                    "Would you like to go setting and allow it?");
                 }else {
                     Toast.makeText(this, permission_denied_msg, Toast.LENGTH_SHORT).show();
                 }
+            }else {
+                scanAndConnectDevice();
             }
         } else {
-            Toast.makeText(this, permission_denied_msg, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Unexpected result.", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private boolean isGPSEnable(){
-        LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 }
