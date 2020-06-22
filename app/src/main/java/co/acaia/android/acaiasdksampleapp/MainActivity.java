@@ -2,14 +2,15 @@ package co.acaia.android.acaiasdksampleapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -30,20 +31,19 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import co.acaia.ble.events.ScaleConnectStateEvent;
-import co.acaia.brewguide.BrewguideUploader;
-import co.acaia.brewguide.events.BrewguideCommandEvent;
 import co.acaia.brewguide.events.PearlSStatusEvent;
-import co.acaia.brewguide.events.PearlSUploadProgressEvent;
 import co.acaia.communications.events.ServiceConnectionEvent;
 import co.acaia.communications.events.WeightEvent;
-import co.acaia.communications.protocol.ver20.pearls.ScaleProtocol;
 import co.acaia.communications.scaleService.ScaleCommunicationService;
+import co.acaia.communications.scalecommand.ScaleConnectionCommandEvent;
+import co.acaia.communications.scalecommand.ScaleConnectionCommandEventType;
 import co.acaia.communications.scaleevent.ScaleSettingUpdateEvent;
 import co.acaia.communications.scaleevent.ScaleSettingUpdateEventType;
+
+import static co.acaia.communications.scaleService.ScaleCommunicationService.ACTION_DEVICE_FOUND;
+import static co.acaia.communications.scaleService.ScaleCommunicationService.EXTRA_DEVICE;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
@@ -61,7 +61,9 @@ public class MainActivity extends AppCompatActivity {
             rbtnG, rbtnOz,
             rbtn0Min, rbtn5Min, rbtn10Min, rbtn20Min, rbtn30Min, rbtn60Min;
     private LoadingDialog loadingDialog;
-    private final int sec = 10;
+    private List<BluetoothDevice> devices = new ArrayList<>();
+    private List<String> deviceNames = new ArrayList<>();
+    private final int sec = 3;
     private CountDownTimer stopScanTimer = new CountDownTimer(1000*sec, 1000) {
         @Override
         public void onTick(long l) {
@@ -72,10 +74,14 @@ public class MainActivity extends AppCompatActivity {
         public void onFinish() {
             if(loadingDialog!=null && loadingDialog.isShowing()){
                 loadingDialog.dismiss();
-                Toast.makeText(MainActivity.this, "No Scales be found", Toast.LENGTH_SHORT).show();
             }
-            btnConnect.setClickable(true);
-            btnConnect.setText("Connect");
+            if (devices.size()>0){
+                showDevices();
+            }else {
+                Toast.makeText(MainActivity.this, "No device found.", Toast.LENGTH_SHORT).show();
+                btnConnect.setClickable(true);
+                btnConnect.setText("Connect");
+            }
         }
     };
     private CompoundButton.OnCheckedChangeListener onCapacityChangeListener = new CompoundButton.OnCheckedChangeListener() {
@@ -141,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
+        registerDeviceReceiver();
         blueAdapter = BluetoothAdapter.getDefaultAdapter();
         iniView();
     }
@@ -148,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         stopScanTimer.cancel();
+        unregisterReceiver(deviceReceiever);
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
@@ -182,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isConnected){
                     disconnectDevice();
                 }else {
-                    scanAndConnectDevice();
+                    scanDevice();
                 }
             }
         });
@@ -248,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void scanAndConnectDevice(){
+    private void scanDevice(){
         if (isBleEnable() && isGPSEnable() && isPermissionGranted()){
             if (isServiceReady && !isConnected){
                 if(mCommunicationService==null){
@@ -258,9 +266,29 @@ public class MainActivity extends AppCompatActivity {
                 stopScanTimer.start();
                 btnConnect.setClickable(false);
                 btnConnect.setText("Connecting...");
-                mCommunicationService.autoConnect(1000*sec);
+                devices.clear();
+                deviceNames.clear();
+                mCommunicationService.startScan();
             }
         }
+    }
+
+    private void showDevices(){
+        String[] names = new String[deviceNames.size()];
+        names = deviceNames.toArray(names);
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Connect device");
+        builder.setItems(names, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                connectDevice(devices.get(which));
+            }
+        });
+        builder.show();
+    }
+
+    private void connectDevice(BluetoothDevice device){
+        EventBus.getDefault().post(new ScaleConnectionCommandEvent(ScaleConnectionCommandEventType.connection_command.CONNECT.ordinal(), device.getAddress()));
     }
 
     private void showSettingItems(){
@@ -288,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
         isServiceReady = event.isConnected();
         if(event.isConnected()){
             // Auto connect scale if the service is connected.
-            scanAndConnectDevice();
+//            scanAndConnectDevice();
         }
     }
 
@@ -477,10 +505,30 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(this, permission_denied_msg, Toast.LENGTH_SHORT).show();
                 }
             }else {
-                scanAndConnectDevice();
+                scanDevice();
             }
         } else {
             Toast.makeText(this, "Unexpected result.", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void registerDeviceReceiver() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ScaleCommunicationService.ACTION_DEVICE_FOUND);
+        registerReceiver(deviceReceiever, intentFilter);
+    }
+
+    private BroadcastReceiver deviceReceiever = new BroadcastReceiver(){
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if(action.equals(ACTION_DEVICE_FOUND)){
+                BluetoothDevice device = (BluetoothDevice) intent.getExtras().get(EXTRA_DEVICE);
+                if (!devices.contains(device)){
+                    devices.add(device);
+                    deviceNames.add(device.getName());
+                }
+            }
+        }
+    };
 }
