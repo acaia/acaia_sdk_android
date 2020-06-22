@@ -68,38 +68,15 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_device_info" />
 
-    <TextView
-        android:id="@+id/tv_key_disable"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Key disable:"
-        android:visibility="gone"
-        android:textSize="24sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_capacity" />
-
-
-    <androidx.recyclerview.widget.RecyclerView
-        tools:listitem="@layout/item_mode"
-        android:id="@+id/rc_mode_list"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/r_group_auto_off_time"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_key_disable" />
-
     <RadioGroup
         android:id="@+id/r_group_auto_off_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/switch_beep_sound">
+        app:layout_constraintTop_toBottomOf="@+id/switch_beep_sound"
+        app:layout_constraintBottom_toTopOf="@id/btn_connect"
+        app:layout_constraintLeft_toLeftOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
@@ -157,9 +134,10 @@
         android:textOff="off"
         android:textOn="on"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/btn_connect"
-        app:layout_constraintLeft_toRightOf="@+id/r_group_auto_off_time"
-        app:layout_constraintRight_toLeftOf="@+id/r_group_unit" />
+        app:layout_constraintTop_toBottomOf="@id/tv_device_name"
+        app:layout_constraintBottom_toTopOf="@+id/r_group_auto_off_time"
+        app:layout_constraintLeft_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="parent" />
 
     <RadioGroup
         android:id="@+id/r_group_capacity"
@@ -167,9 +145,9 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintLeft_toLeftOf="@+id/r_group_unit"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/r_group_unit">
+        app:layout_constraintRight_toLeftOf="@+id/r_group_unit"
+        app:layout_constraintLeft_toRightOf="@id/r_group_auto_off_time"
+        app:layout_constraintTop_toTopOf="@id/r_group_auto_off_time">
 
         <TextView
             android:layout_width="wrap_content"
@@ -197,8 +175,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/switch_beep_sound"
-        app:layout_constraintLeft_toRightOf="@+id/switch_beep_sound"
+        app:layout_constraintTop_toTopOf="@+id/r_group_auto_off_time"
         app:layout_constraintRight_toRightOf="parent">
 
         <TextView
@@ -226,20 +203,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Connect"
+        app:layout_constraintBottom_toTopOf="@+id/guideLine2"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/btn_upload"
-        app:layout_constraintBottom_toTopOf="@+id/guideLine2"/>
-
-    <Button
-        android:id="@+id/btn_upload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Upload"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="@+id/btn_connect"
-        app:layout_constraintLeft_toRightOf="@+id/btn_connect"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="@+id/btn_connect"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideLine2"

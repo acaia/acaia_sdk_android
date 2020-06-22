@@ -46,32 +46,20 @@ import co.acaia.communications.scaleevent.ScaleSettingUpdateEvent;
 import co.acaia.communications.scaleevent.ScaleSettingUpdateEventType;
 
 public class MainActivity extends AppCompatActivity {
-
-    public enum UPLOAD_MODE {
-        MODE_BREWGUIDE,
-        MODE_MESSAGE
-    }
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
-    private UPLOAD_MODE uploadMode;
-    private Brew brew;
     private ScaleCommunicationService mCommunicationService;
     private BluetoothAdapter blueAdapter;
     private BluetoothDevice currentDevice;
     private boolean isConnected = false;
     private boolean isServiceReady = false;
-    private Button btnConnect, btnUpload;
-    private TextView tvWeigh, tvDeviceName, tvDeviceInfo, tvBattery, tvCapacity, tvKeyDisable;
-    private ModeAdapter modeAdapter;
-    private List<ModeAdapter.Mode> modeList = new ArrayList<>();
-    private RecyclerView rcMode;
+    private Button btnConnect;
+    private TextView tvWeigh, tvDeviceName, tvDeviceInfo, tvBattery, tvCapacity;
     private SwitchCompat switchBeepSound;
     private RadioGroup rGroupCapacity, rGroupUnit, rGroupAutoOffTime;
     private RadioButton
             rbtnCapacity1000, rbtnCapacity2000,
             rbtnG, rbtnOz,
             rbtn0Min, rbtn5Min, rbtn10Min, rbtn20Min, rbtn30Min, rbtn60Min;
-    private Timer uploadErrorTimer;
-    private long last_data_time = 0;
     private LoadingDialog loadingDialog;
     private final int sec = 10;
     private CountDownTimer stopScanTimer = new CountDownTimer(1000*sec, 1000) {
@@ -154,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         EventBus.getDefault().register(this);
         blueAdapter = BluetoothAdapter.getDefaultAdapter();
-        createBrew();
         iniView();
     }
 
@@ -165,58 +152,14 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private void createBrew(){
-        //Get recipe data ...
-    }
-
-    private void uploadBrew(){
-        if(brew==null){
-            Toast.makeText(this, "Null Brew !!!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (brew.getStepItems().size() <= 0) {
-            Toast.makeText(this, "Please enter at least one Brewstep...", Toast.LENGTH_LONG).show();
-            return;
-        }
-        loadingDialog.show(LoadingDialog.LoadingMode.bar);
-        BrewguideUploader brewguideUploader = AcaiaSDKSampleApp.brewguideUploader;
-        brewguideUploader.upload_mode = BrewguideUploader.UPLOAD_MODE.upload_mode_brewguide;
-        co.acaia.brewguide.model.Brewguide brewguide = new co.acaia.brewguide.model.Brewguide(brew.createParse(this));
-        brewguideUploader.setBrewguideData(brewguide);
-        BrewguideCommandEvent event = new BrewguideCommandEvent((short) ScaleProtocol.ECMD.new_cmd_sync_brewguide_s.ordinal(), (short) 5);
-        EventBus.getDefault().post(event);
-        uploadErrorTimer = new Timer();
-        uploadErrorTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (System.currentTimeMillis() - last_data_time > 5000) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            disconnectDevice();
-                            if(loadingDialog!=null && loadingDialog.isShowing()){
-                                loadingDialog.dismiss();
-                            }
-                            loadingDialog.setProgress(0);
-                            Toast.makeText(MainActivity.this, "Upload failed !!!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-        }, 10000);
-    }
-
     private void iniView(){
         loadingDialog = new LoadingDialog(this);
         btnConnect = findViewById(R.id.btn_connect);
-        btnUpload = findViewById(R.id.btn_upload);
         tvWeigh = findViewById(R.id.tv_weigh);
         tvDeviceName = findViewById(R.id.tv_device_name);
         tvDeviceInfo = findViewById(R.id.tv_device_info);
         tvBattery = findViewById(R.id.tv_battery);
         tvCapacity = findViewById(R.id.tv_capacity);
-        tvKeyDisable = findViewById(R.id.tv_key_disable);
-        rcMode = findViewById(R.id.rc_mode_list);
         switchBeepSound = findViewById(R.id.switch_beep_sound);
         rGroupCapacity = findViewById(R.id.r_group_capacity);
         rbtnCapacity1000 = findViewById(R.id.rbtn_capacity_1000);
@@ -243,12 +186,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        btnUpload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                uploadBrew();
-            }
-        });
         switchBeepSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -269,10 +206,6 @@ public class MainActivity extends AppCompatActivity {
         rbtn20Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
         rbtn30Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
         rbtn60Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
-
-        modeAdapter = new ModeAdapter(modeList);
-        rcMode.setLayoutManager(new LinearLayoutManager(this));
-        rcMode.setAdapter(modeAdapter);
     }
 
     private void resetInfo(){
@@ -281,7 +214,6 @@ public class MainActivity extends AppCompatActivity {
         tvDeviceInfo.setText("Device Info");
         tvBattery.setText("Battery:");
         tvCapacity.setText("Capacity:");
-        tvKeyDisable.setText("Key Disable:");
     }
 
     private void disconnectDevice(){
@@ -336,10 +268,7 @@ public class MainActivity extends AppCompatActivity {
         rGroupCapacity.setVisibility(View.VISIBLE);
         rGroupUnit.setVisibility(View.VISIBLE);
         rGroupAutoOffTime.setVisibility(View.VISIBLE);
-        rcMode.setVisibility(View.VISIBLE);
         if(currentDevice.getName().contains("PEARLS")){
-            btnUpload.setVisibility(View.VISIBLE);
-            rcMode.setVisibility(View.VISIBLE);
             rbtnCapacity2000.setText("3000 g");
         }else {
             rbtnCapacity2000.setText("2000 g");
@@ -352,13 +281,6 @@ public class MainActivity extends AppCompatActivity {
         rGroupCapacity.setVisibility(View.GONE);
         rGroupUnit.setVisibility(View.GONE);
         rGroupAutoOffTime.setVisibility(View.GONE);
-        rcMode.setVisibility(View.GONE);
-        if(btnUpload.getVisibility() == View.VISIBLE){
-            btnUpload.setVisibility(View.GONE);
-        }
-        if(rcMode.getVisibility() == View.VISIBLE){
-            rcMode.setVisibility(View.GONE);
-        }
     }
 
     @Subscribe
@@ -368,22 +290,6 @@ public class MainActivity extends AppCompatActivity {
             // Auto connect scale if the service is connected.
             scanAndConnectDevice();
         }
-    }
-
-    @Subscribe
-    public void onEvent(PearlSUploadProgressEvent event) {
-        if(event.progress==100){
-            if (uploadErrorTimer != null) {
-                uploadErrorTimer.cancel();
-            }
-            disconnectDevice();
-            if(loadingDialog!=null && loadingDialog.isShowing()){
-                loadingDialog.dismiss();
-            }
-            return;
-        }
-        last_data_time = System.currentTimeMillis();
-        loadingDialog.setProgress(event.progress);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -477,44 +383,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         tvCapacity.setText("Capacity: " + capacity + " g");
-        //Mode
-        tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Brewguide Mode");
-        if(event.weighingMode==1){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Weighing Mode");
-        }
-        if(event.dualDispMode==1){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Dual Display Mode");
-        }
-        if(event.pourOverAutoStartMode==1){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Pour Over Auto Start Mode");
-        }
-        if(event.protaMode==1){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Protafilter Mode");
-        }
-        if(event.espressoMode==1){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Espresso Mode");
-        }
-        if(event.pourOverMode==1){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Mode");
-        }
-        if(event.flowRatemode==1){
-            tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Mode: Flowrate Practice Mode");
-        }
-        showMode(event);
-    }
-
-    private void showMode(PearlSStatusEvent event){
-        if (modeList.size()<=0){
-            modeList.add(new ModeAdapter.Mode(true, "Brewguide Mode"));
-            modeList.add(new ModeAdapter.Mode(event.weighingMode==1, "Weighing Mode"));
-            modeList.add(new ModeAdapter.Mode(event.dualDispMode==1, "Dual Display Mode"));
-            modeList.add(new ModeAdapter.Mode(event.pourOverAutoStartMode==1, "Pour Over Auto Start Mode"));
-            modeList.add(new ModeAdapter.Mode(event.protaMode==1, "Protafilter Mode"));
-            modeList.add(new ModeAdapter.Mode(event.espressoMode==1, "Espresso Mode"));
-            modeList.add(new ModeAdapter.Mode(event.pourOverMode==1, "Flowrate Mode"));
-            modeList.add(new ModeAdapter.Mode(event.flowRatemode==1, "Flowrate Practice Mode"));
-            modeAdapter.notifyItemRangeInserted(0, modeList.size());
-        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -574,8 +442,6 @@ public class MainActivity extends AppCompatActivity {
                 rbtnCapacity1000.setChecked(true);
             }
             tvCapacity.setText("Capacity: " + capacity + " g");
-        }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_KEY_DISABLED_ELAPSED_TIME.ordinal()){
-            tvKeyDisable.setText("Key disable: " + event.get_val());
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_UNIT.ordinal()){
             if(event.get_val()==0){
                 rbtnG.setChecked(true);
