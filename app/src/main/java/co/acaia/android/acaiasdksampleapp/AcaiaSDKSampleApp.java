@@ -6,12 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-import com.parse.Parse;
-
 import org.greenrobot.eventbus.EventBus;
 
-//import co.acaia.brewguide.BrewguideUploader;
-import co.acaia.brewguide.BrewguideUploader;
 import co.acaia.communications.events.WeightEvent;
 import co.acaia.communications.scaleService.AcaiaScaleService;
 import co.acaia.communications.scaleService.ScaleCommunicationService;
@@ -22,22 +18,13 @@ import co.acaia.communications.scaleevent.ScaleSettingUpdateEventType;
  * Created by Dennis on 2019-09-26
  */
 public class AcaiaSDKSampleApp extends Application {
-    public static BrewguideUploader brewguideUploader;
     public static AcaiaScaleService mAcaiaScaleService;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        brewguideUploader = new BrewguideUploader(BrewguideUploader.UPLOAD_MODE.upload_mode_brewguide);
         initAcaiaBt();
         registerUpdateReceiver();
-//        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onTerminate() {
-        super.onTerminate();
-//        EventBus.getDefault().unregister(this);
     }
 
     private void initAcaiaBt() {
