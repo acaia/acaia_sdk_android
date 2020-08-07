@@ -487,6 +487,7 @@ public class MainActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
                     requestPermissions(
                             new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
                                     Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                             PERMISSION_REQUEST_COARSE_LOCATION);
                 }else {
