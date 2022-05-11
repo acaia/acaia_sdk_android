@@ -37,6 +37,8 @@ import co.acaia.brewguide.events.PearlSStatusEvent;
 import co.acaia.communications.events.ServiceConnectionEvent;
 import co.acaia.communications.events.WeightEvent;
 import co.acaia.communications.scaleService.ScaleCommunicationService;
+import co.acaia.communications.scalecommand.ScaleCommandEvent;
+import co.acaia.communications.scalecommand.ScaleCommandType;
 import co.acaia.communications.scalecommand.ScaleConnectionCommandEvent;
 import co.acaia.communications.scalecommand.ScaleConnectionCommandEventType;
 import co.acaia.communications.scaleevent.ScaleSettingUpdateEvent;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothDevice currentDevice;
     private boolean isConnected = false;
     private boolean isServiceReady = false;
-    private Button btnConnect;
+    private Button btnConnect, btn_tare, btn_go_timer;
     private TextView tvWeigh, tvDeviceName, tvDeviceInfo, tvBattery, tvCapacity;
     private SwitchCompat switchBeepSound;
     private RadioGroup rGroupCapacity, rGroupUnit, rGroupAutoOffTime;
@@ -163,6 +165,8 @@ public class MainActivity extends AppCompatActivity {
     private void iniView(){
         loadingDialog = new LoadingDialog(this);
         btnConnect = findViewById(R.id.btn_connect);
+        btn_tare = findViewById(R.id.btn_tare);
+        btn_go_timer = findViewById(R.id.btn_go_timer);
         tvWeigh = findViewById(R.id.tv_weigh);
         tvDeviceName = findViewById(R.id.tv_device_name);
         tvDeviceInfo = findViewById(R.id.tv_device_info);
@@ -192,6 +196,12 @@ public class MainActivity extends AppCompatActivity {
                 }else {
                     scanDevice();
                 }
+            }
+        });
+        btn_tare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EventBus.getDefault().post(new ScaleCommandEvent(ScaleCommandType.command_id.SEND_TARE.ordinal()));
             }
         });
         switchBeepSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -292,6 +302,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showSettingItems(){
+        btn_tare.setVisibility(View.VISIBLE);
+        btn_go_timer.setVisibility(View.VISIBLE);
         switchBeepSound.setVisibility(View.VISIBLE);
         rGroupCapacity.setVisibility(View.VISIBLE);
         rGroupUnit.setVisibility(View.VISIBLE);
@@ -305,6 +317,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void hideSettingItems(){
         resetInfo();
+        btn_tare.setVisibility(View.GONE);
+        btn_go_timer.setVisibility(View.GONE);
         switchBeepSound.setVisibility(View.GONE);
         rGroupCapacity.setVisibility(View.GONE);
         rGroupUnit.setVisibility(View.GONE);
@@ -541,4 +555,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    public void goTimer(View v){
+        startActivity(new Intent(this, TimerActivity.class));
+    }
 }

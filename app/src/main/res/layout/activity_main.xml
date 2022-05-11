@@ -204,14 +204,37 @@
         android:layout_height="wrap_content"
         android:text="Connect"
         app:layout_constraintBottom_toTopOf="@+id/guideLine2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_tare"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btn_tare"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="goTimer"
+        android:text="Tare"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_connect"
+        app:layout_constraintEnd_toStartOf="@+id/btn_go_timer"
+        app:layout_constraintStart_toEndOf="@+id/btn_connect"
+        app:layout_constraintTop_toTopOf="@+id/btn_connect" />
+
+    <Button
+        android:id="@+id/btn_go_timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="goTimer"
+        android:text="Go Timer"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_connect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btn_tare"
+        app:layout_constraintTop_toTopOf="@+id/btn_connect" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideLine2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.9" />
+        app:layout_constraintGuide_percent="0.95" />
 </androidx.constraintlayout.widget.ConstraintLayout>
