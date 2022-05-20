@@ -86,6 +86,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+    private CompoundButton.OnCheckedChangeListener onBeepOnOffListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+            if(b){
+                mCommunicationService.turnOnVoice();
+            }else {
+                mCommunicationService.turnOffVoice();
+            }
+        }
+    };
     private CompoundButton.OnCheckedChangeListener onCapacityChangeListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -204,16 +214,7 @@ public class MainActivity extends AppCompatActivity {
                 EventBus.getDefault().post(new ScaleCommandEvent(ScaleCommandType.command_id.SEND_TARE.ordinal()));
             }
         });
-        switchBeepSound.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if(b){
-                    mCommunicationService.turnOnVoice();
-                }else {
-                    mCommunicationService.turnOffVoice();
-                }
-            }
-        });
+        switchBeepSound.setOnCheckedChangeListener(onBeepOnOffListener);
         rbtnCapacity1000.setOnCheckedChangeListener(onCapacityChangeListener);
         rbtnCapacity2000.setOnCheckedChangeListener(onCapacityChangeListener);
         rbtnG.setOnCheckedChangeListener(onUnitChangeListener);
@@ -363,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
         //Battery
         tvBattery.setText("Battery: " + event.battery + "%");
         //Beep sound
+        switchBeepSound.setOnCheckedChangeListener(null);
         switch (event.beep){
             case 0:
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "Sound: OFF");
@@ -374,54 +376,75 @@ public class MainActivity extends AppCompatActivity {
                 switchBeepSound.setChecked(true);
                 break;
         }
+        switchBeepSound.setOnCheckedChangeListener(onBeepOnOffListener);
         //Auto off time
         switch (event.autoOff){
             case 0:
+                rbtn0Min.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: Disabled");
                 rbtn0Min.setChecked(true);
+                rbtn0Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
                 break;
             case 1:
+                rbtn5Min.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 5 minutes");
                 rbtn5Min.setChecked(true);
+                rbtn5Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
                 break;
             case 2:
+                rbtn10Min.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 10 minutes");
                 rbtn10Min.setChecked(true);
+                rbtn10Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
                 break;
             case 3:
+                rbtn20Min.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 20 minutes");
                 rbtn20Min.setChecked(true);
+                rbtn20Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
                 break;
             case 4:
+                rbtn30Min.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 30 minutes");
                 rbtn30Min.setChecked(true);
+                rbtn30Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
                 break;
             case 5:
+                rbtn60Min.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Auto off: 60 minutes");
                 rbtn60Min.setChecked(true);
+                rbtn60Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
                 break;
         }
         //Weigh unit
         switch (event.unit){
             case 2:
+                rbtnG.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Weigh Unit: Gram");
                 rbtnG.setChecked(true);
+                rbtnG.setOnCheckedChangeListener(onUnitChangeListener);
                 break;
             case 5:
+                rbtnOz.setOnCheckedChangeListener(null);
                 tvDeviceInfo.setText(tvDeviceInfo.getText().toString() + "\n" + "Weigh Unit: Ounce");
                 rbtnOz.setChecked(true);
+                rbtnOz.setOnCheckedChangeListener(onUnitChangeListener);
                 break;
         }
         //Capacity
         String capacity = "";
         switch (event.capacity){
             case 0:
+                rbtnCapacity1000.setOnCheckedChangeListener(null);
                 capacity = "1000";
                 rbtnCapacity1000.setChecked(true);
+                rbtnCapacity1000.setOnCheckedChangeListener(onCapacityChangeListener);
                 break;
             case 1:
+                rbtnCapacity2000.setOnCheckedChangeListener(null);
                 capacity = "3000";
                 rbtnCapacity2000.setChecked(true);
+                rbtnCapacity2000.setOnCheckedChangeListener(onCapacityChangeListener);
                 break;
         }
         tvCapacity.setText("Capacity: " + capacity + " g");
@@ -448,13 +471,21 @@ public class MainActivity extends AppCompatActivity {
         if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_BATTERY.ordinal()){
             tvBattery.setText("Battery: " + event.get_val() + "%");
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_BEEP.ordinal()){
+            switchBeepSound.setOnCheckedChangeListener(null);
             if(event.get_val()==0.0f){
                 switchBeepSound.setChecked(false);
             }else {
                 //beep sound on
                 switchBeepSound.setChecked(true);
             }
+            switchBeepSound.setOnCheckedChangeListener(onBeepOnOffListener);
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_AUTO_OFF_TIME.ordinal()){
+            rbtn0Min.setOnCheckedChangeListener(null);
+            rbtn5Min.setOnCheckedChangeListener(null);
+            rbtn10Min.setOnCheckedChangeListener(null);
+            rbtn20Min.setOnCheckedChangeListener(null);
+            rbtn30Min.setOnCheckedChangeListener(null);
+            rbtn60Min.setOnCheckedChangeListener(null);
             if(event.get_val()==0.0f){
                 rbtn0Min.setChecked(true);
             }else if(event.get_val()==1.0f){
@@ -468,28 +499,36 @@ public class MainActivity extends AppCompatActivity {
             }else if(event.get_val()==5.0f){
                 rbtn60Min.setChecked(true);
             }
+            rbtn0Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
+            rbtn5Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
+            rbtn10Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
+            rbtn20Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
+            rbtn30Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
+            rbtn60Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_UNIT.ordinal()){
             if(event.get_val()==0){
+                rbtnG.setOnCheckedChangeListener(null);
                 rbtnG.setChecked(true);
+                rbtnG.setOnCheckedChangeListener(onUnitChangeListener);
             }else {
+                rbtnOz.setOnCheckedChangeListener(null);
                 rbtnOz.setChecked(true);
+                rbtnOz.setOnCheckedChangeListener(onUnitChangeListener);
             }
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_CAPACITY.ordinal()){
             String capacity = "";
             if(event.get_val()==1){
                 capacity = "2000";
+                rbtnCapacity2000.setOnCheckedChangeListener(null);
                 rbtnCapacity2000.setChecked(true);
+                rbtnCapacity2000.setOnCheckedChangeListener(onCapacityChangeListener);
             }else {
                 capacity = "1000";
+                rbtnCapacity1000.setOnCheckedChangeListener(null);
                 rbtnCapacity1000.setChecked(true);
+                rbtnCapacity1000.setOnCheckedChangeListener(onCapacityChangeListener);
             }
             tvCapacity.setText("Capacity: " + capacity + " g");
-        }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_UNIT.ordinal()){
-            if(event.get_val()==0){
-                rbtnG.setChecked(true);
-            }else if(event.get_val()==1){
-                rbtnOz.setChecked(true);
-            }
         }
     }
 
