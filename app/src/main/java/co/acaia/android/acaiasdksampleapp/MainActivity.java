@@ -1,5 +1,6 @@
 package co.acaia.android.acaiasdksampleapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
@@ -16,6 +17,10 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.provider.Settings;
+import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -170,6 +175,26 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(deviceReceiever);
         EventBus.getDefault().unregister(this);
         super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_more, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_logs:
+                showLogs();
+                return true;
+            case R.id.action_clear_logs:
+                clearLogs();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     private void iniView(){
@@ -341,6 +366,7 @@ public class MainActivity extends AppCompatActivity {
         isConnected = event.isConnected;
         if(isConnected){
             if (event.device!=null) {
+                clearLogs();
                 currentDevice = event.device;
                 tvDeviceName.setText(event.device.getName());
             }
@@ -417,6 +443,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         //Weigh unit
+        addLogs("BM71 unit event:" + event.unit);
         switch (event.unit){
             case 2:
                 rbtnG.setOnCheckedChangeListener(null);
@@ -458,10 +485,12 @@ public class MainActivity extends AppCompatActivity {
             case "oz":
                 weight_str = String.format(Locale.US, "%.3f", weight_value);
                 tvWeigh.setText(weight_str + " " + event.weight.getUnitText());
+                addLogs("Weight:" + weight_str + " " + event.weight.getUnitText());
                 break;
             case "g":
                 weight_str = String.format(Locale.US, "%.1f", weight_value);
                 tvWeigh.setText(weight_str + " " + event.weight.getUnitText());
+                addLogs("Weight:" + weight_str + " " + event.weight.getUnitText());
                 break;
         }
     }
@@ -506,6 +535,7 @@ public class MainActivity extends AppCompatActivity {
             rbtn30Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
             rbtn60Min.setOnCheckedChangeListener(onAutoOffTimeChangeListener);
         }else if(event.get_type() == ScaleSettingUpdateEventType.event_type.EVENT_UNIT.ordinal()){
+            addLogs("Unit event:" + event.get_val());
             if(event.get_val()==0){
                 rbtnG.setOnCheckedChangeListener(null);
                 rbtnG.setChecked(true);
@@ -597,5 +627,22 @@ public class MainActivity extends AppCompatActivity {
 
     public void goTimer(View v){
         startActivity(new Intent(this, TimerActivity.class));
+    }
+
+    private String logText = "";
+    private void addLogs(String log) {
+        logText += log + "\n";
+    }
+
+    private void clearLogs() {
+        logText = "";
+    }
+
+    private void showLogs() {
+        if (TextUtils.isEmpty(logText)) logText = "Empty logs.";
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setTitle("Logs");
+        builder.setMessage(logText);
+        builder.show();
     }
 }
